@@ -1,12 +1,20 @@
+from tkinter.filedialog import askopenfilename, asksaveasfile, asksaveasfilename
+from tkinter import *
 import pandas as pd
 import re
+
+def replace_right(source, target, replacement, replacements=None):
+    return replacement.join(source.rsplit(target, replacements))
 
 def analyse_cell(cell):
     value = str(cell)
     value = re.sub("\D", "", value)
     cell = value
-    ddi = '55'
-    ddd = '11'
+    global ddiEntry
+    global dddEntry
+
+    ddi = ddiEntry.get()
+    ddd = dddEntry.get()
     digit = '9'
 
     nextel = [70, 77, 78, 79]
@@ -111,10 +119,42 @@ def process_file(path):
     df.dropna(inplace = True)
     # Convert first column to int
     df[0] = df[0].astype(int)
+
+
+
+    dirToSave = asksaveasfilename(filetypes = (("Planilhas do Excel", "*.xlsx"),))
+
+    dirToSave = replace_right(dirToSave, ".", "_quant_" + str(len(df)) + '.', 1)
+
     # Save the dataframe
-    df.to_excel('//home//bryann//Área de Trabalho//excel//test//test01.xlsx', header=None,index=False)
+    if dirToSave:
+        df.to_excel(dirToSave, sheet_name="main", header=None, index=False)
 
 
-path = 'test.xlsx'
+def initialize_process():
 
-process_file(path)
+    Tk().withdraw()
+    filename = askopenfilename(filetypes = (("Planilhas do Excel", "*.xlsx"),))
+    if filename:
+
+        process_file(filename)
+
+root = Tk()
+
+root.title('SMS Database Filter')
+
+ddiLabel = Label(root, text="Seu DDI").grid(row=0)
+dddLabel = Label(root, text="Seu DDD").grid(row=1)
+
+ddiEntry = Entry(root)
+
+dddEntry = Entry(root)
+
+ddiEntry.grid(row=0, column=1)
+dddEntry.grid(row=1, column=1)
+
+bt = Button(root, text="Selecionar Arquivo", command=initialize_process)
+bt.place()
+bt.grid(columnspan=2, sticky='we')
+
+root.mainloop()
